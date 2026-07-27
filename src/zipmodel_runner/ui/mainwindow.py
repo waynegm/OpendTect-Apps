@@ -8,14 +8,28 @@ from shared.uitools import (
     uiFileSel,
     uiSpinBoxRowWidget
 )
+from shared.uijobqueue import (
+    uiJobQueue,
+    JobTask,
+    JobPars,
+    JobSignals
+)
 
+from src.zipmodel_runner.utils.zipmodeltask import ZipModelTask, ZipModelTaskPars
 from utils.zipmodelhelpers import ZipModelInfoReader, is_seisimg2img
 
+from PySide6.QtCore import Qt, QThreadPool
 from PySide6.QtWidgets import (
     QFileDialog,
     QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
     QMainWindow,
     QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
@@ -57,12 +71,65 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.inputgrp)
         layout.addWidget(self.outputgrp)
         layout.addWidget(self.paramgrp)
+
+
+        buttongrp = QHBoxLayout()
+        self.add_button = QPushButton("Add")
+        self.add_button.setEnabled(False)
+        self.add_button.clicked.connect(self.on_add_button_clicked)
+        self.start_button = QPushButton("Start")
+        self.start_button.setEnabled(False)
+        self.start_button.clicked.connect(self.on_start_button_clicked)
+        self.stop_button = QPushButton("Stop")
+        self.stop_button.setEnabled(False)
+        self.stop_button.clicked.connect(self.on_stop_button_clicked)
+        self.delete_button = QPushButton("Delete")
+        self.delete_button.setEnabled(False)
+        self.delete_button.clicked.connect(self.on_delete_button_clicked)
+        buttongrp.addWidget(self.add_button)
+        buttongrp.addWidget(self.start_button)
+        buttongrp.addWidget(self.stop_button)
+        buttongrp.addWidget(self.delete_button)
+        layout.addLayout(buttongrp)
+
+        self.jobqueue = uiJobQueue(1)
+        layout.addWidget(self.jobqueue)
+
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
 
+    def on_delete_button_clicked(self):
+        self.jobqueue.delete_selected()
+        if self.jobqueue.size()==0:
+            self.delete_button.setEnabled(False)
+            self.start_button.setEnabled(False)
+            self.stop_button.setEnabled(False)
+
+    def on_add_button_clicked(self):
+        job = ZipModelTask(self.jobqueue.rowCount(),self.pars)
+        self.jobqueue.add_job(job)
+        if self.jobqueue.size()==1:
+            self.delete_button.setEnabled(False)
+            self.stop_button.setEnabled(False)
+        else:
+            self.delete_button.setEnabled(True)
+            self.start_button.setEnabled(False)
+            self.stop_button.setEnabled(True)
+
+
+    def on_start_button_clicked(self):
+        self.start_button.setEnabled(False)
+        self.stop_button.setEnabled(True)
+
+    def on_stop_button_clicked(self):
+        pass
+
     def on_zipmodel_select(self):
-        if hasattr(self, 'worker') and self.worker is not None and self.worker.isRunning():
+        try:
+            if hasattr(self, 'worker') and self.worker is not None and self.worker.isRunning():
+                self.worker = None
+        except RuntimeError:
             self.worker = None
 
         self.filesel.button.setEnabled(False)
@@ -82,9 +149,28 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"Unsupported learning type: {modelinfo.learn_type}")
             return
 
-        self.update_inputs(modelinfo.input_names)
-        self.update_outputs(modelinfo.output_names)
+        self.fillpars(modelinfo)
+        self.update_inputs(modelinfo["input_names"])
+        self.update_outputs(modelinfo["output_names"])
         self.update_params(modelinfo)
+        self.add_button.setEnabled(True)
+
+    def fillpars(self, modelinfo):
+        self.pars = ZipModelTaskPars(
+            name=modelinfo["model_name"],
+            model_path=self.filesel.path(),
+            survey_name=self.surveysel.currentText(),
+            input_volume_names=[""],
+            output_volume_names=[""],
+            inline_range=(0, 0),
+            crossline_range=(0, 0),
+            z_range=(0.0, 0.0),
+            chunk_size=self.chunksz.get_values(),
+            overlap=self.overlap.get_values(),
+            merge_mode=self.mergemode.currentIndex(),
+            propery_names=modelinfo["output_names"],
+            format_name="CBVS"
+        )
 
     def update_inputs(self, names: list[str] | None = None):
         names = names or ['Input']
@@ -151,7 +237,7 @@ class MainWindow(QMainWindow):
 
     def update_params(self, modelinfo):
         self.mergemode.initui()
-        input_shape = modelinfo.input_shape
+        input_shape = modelinfo["input_shape"]
         chunksz = []
         for sz in input_shape[2:]:
             if sz==0:

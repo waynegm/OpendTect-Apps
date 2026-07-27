@@ -9,12 +9,7 @@ preview = ["pixi-build"]
 
 [activation.env]
 ODPYTHON = "/opt/seismic/OpendTectPro_rc/2025/bin/python"
-
-[target.linux.activation]
-env = { PYTHONPATH = "${CONDA_PREFIX}/../../../src:$ODPYTHON:$PYTHONPATH" }
-
-[target.win.activation]
-env = { PYTHONPATH = "${CONDA_PREFIX}/../../..\\src:$ODPYTHON:$PYTHONPATH" }
+PYTHONPATH = "${CONDA_PREFIX}/../../../src:$ODPYTHON:$PYTHONPATH"
 
 [dependencies]
 python = "<3.13"

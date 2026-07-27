@@ -1,9 +1,6 @@
 import os
 import sys
-
 from importlib.util import find_spec
-from unittest.main import main
-
 from shared.uitools import (
     uiLabelledComboBox,
     uiLabelledLineEdit,
@@ -107,10 +104,13 @@ class ODObjectSel(QWidget):
             if self.input.findText(dlg.text())==-1:
                 self.input.addItem(dlg.text())
             self.input.setCurrentText(dlg.text())
-        return
+            self.translator = dlg.chosen_translator()
 
     def text(self) -> str:
         return self.input.currentText()
+
+    def chosen_translator(self) -> str:
+        return self.translator
 
 class ODObjectSelDlg(QDialog):
     def __init__(self,
@@ -159,6 +159,9 @@ class ODObjectSelDlg(QDialog):
     def text(self) -> str:
         return self.object_name.text()
 
+    def chosen_translator(self) -> str:
+        return self.translator.currentText()
+
 def odbind_found() -> bool:
     if find_spec("odbind") is None or find_spec("dgbpy") is None:
         seldir = QFileDialog.getExistingDirectory(
@@ -169,7 +172,6 @@ def odbind_found() -> bool:
         )
         if seldir:
             odpython_path = os.path.join(seldir, "bin", "python")
-            if os.path.exists(odpython_path):
-                if odpython_path not in sys.path:
-                    sys.path.insert(0, odpython_path)
+            if os.path.exists(odpython_path) and odpython_path not in sys.path:
+                sys.path.insert(0, odpython_path)
     return find_spec("odbind") is not None and find_spec("dgbpy") is not None
