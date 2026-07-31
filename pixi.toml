@@ -8,8 +8,8 @@ platforms = [
 preview = ["pixi-build"]
 
 [activation.env]
-ODPYTHON = "/opt/seismic/OpendTectPro_rc/0.0.0/bin/python"
-PYTHONPATH = "${CONDA_PREFIX}/../../../src:$ODPYTHON"
+ODPYTHON = "/opt/seismic/OpendTectPro_rc/0.0.0"
+PYTHONPATH = "${PIXI_PROJECT_ROOT}/src:$ODPYTHON/bin/python"
 
 [dependencies]
 python = "<3.13"
@@ -24,9 +24,4 @@ xarray = ">=2026.4.0,<2027"
 qt6-wayland = "==6.9.3"
 
 [tasks]
-apply = "python src/zipmodel_runner"
-test-app = "python src/test_app"
-test-app-2 = "python src/test_app_2"
-
-[pypi-dependencies]
-h5py = "==3.13"
+zipmodel = "python src/zipmodel_runner"
