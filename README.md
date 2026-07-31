@@ -2,10 +2,13 @@
 Miscellaneous stand-a-lone applications/tools for working with OpendTect projects and data. The applications also serve as demonstrations of the OpendTect ODBind Python bindings.
 
 ## Table of Contents (Optional)
-- [Installation](#installation)
-- [Usage](#usage)
+- [Tools](#tools)
+- [Installation](#usage)
 - [License](#license)
 - [Contributing](#contributing)
+
+## Tools
+- **zipmodel_runner**: apply ZipModels to OpendTect data
 
 ## Installation
 Install the **pixi** package manager, see instructions [here](https://pixi.prefix.dev/latest/installation/)
