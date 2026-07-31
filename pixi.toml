@@ -8,8 +8,8 @@ platforms = [
 preview = ["pixi-build"]
 
 [activation.env]
-ODPYTHON = "/opt/seismic/OpendTectPro_rc/2025/bin/python"
-PYTHONPATH = "${CONDA_PREFIX}/../../../src:$ODPYTHON:$PYTHONPATH"
+ODPYTHON = "/opt/seismic/OpendTectPro_rc/0.0.0/bin/python"
+PYTHONPATH = "${CONDA_PREFIX}/../../../src:$ODPYTHON"
 
 [dependencies]
 python = "<3.13"

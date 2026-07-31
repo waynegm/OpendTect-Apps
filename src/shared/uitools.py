@@ -186,12 +186,14 @@ class uiSpinBoxRowWidget(QWidget):
     valuesChanged = Signal(tuple)
 
     def __init__(self,
-            prefix=["inl","crl","z"],
+        prefix=("inl","crl","z"),
             label: str="SpinBoxes",
             above: bool=True,
+            withsym: bool=True,
             parent=None):
         super().__init__(parent)
         self._is_syncing = False
+        self.withsym = withsym
 
         self.label = QLabel(label)
         if above:
@@ -214,9 +216,13 @@ class uiSpinBoxRowWidget(QWidget):
             spinbox.valueChanged.connect(lambda val, theidx=idx: self.value_changedcb(theidx,val))
         self.label.setBuddy(self.spinners[0])
 
-        self.symmetric = QCheckBox("Symmetric")
-        self.symmetric.toggled.connect(self.symmetry_cb)
-        layout.addWidget(self.symmetric)
+        if self.withsym:
+            self.symmetric = QCheckBox("Symmetric")
+            self.symmetric.toggled.connect(self.symmetry_cb)
+            layout.addWidget(self.symmetric)
+
+    def numbox(self):
+        return len(self.spinners)
 
     def set_range(self, index, min_val, max_val, step_val):
         """Helper to modify ranges and step increments of spin boxes."""
@@ -232,7 +238,7 @@ class uiSpinBoxRowWidget(QWidget):
     def set_values(self, values):
         for sb, val in zip(self.spinners, values) :
             sb.blockSignals(True)
-            if self.symmetric.isChecked():
+            if self.withsym and self.symmetric.isChecked():
                 sb.setValue(values[0])
             else:
                 sb.setValue(val)
@@ -245,7 +251,7 @@ class uiSpinBoxRowWidget(QWidget):
     def value_changedcb(self, idx, val):
         if self._is_syncing:
             return
-        if self.symmetric.isChecked():
+        if self.withsym and self.symmetric.isChecked():
             self._is_syncing = True
             for i, sb in enumerate(self.spinners):
                 if i != idx:

@@ -1,0 +1,13 @@
+[
+  {
+    "label": "Pixi: Run Apply Task",
+    "mode":"debug",
+    "adapter":"Debugpy",
+    "request": "launch",
+    "python": "${ZED_WORKTREE_ROOT}/.pixi/envs/default/bin/python",
+    "program": "${ZED_WORKTREE_ROOT}/src/zipmodel_runner/__main__.py",
+    "env": {
+      "PYTHONPATH": "/opt/seismic/OpendTectPro_rc/0.0.0/bin/python:${ZED_WORKTREE_ROOT}/src"
+    }
+  }
+]

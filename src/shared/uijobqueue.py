@@ -48,6 +48,7 @@ class uiJobQueue(QWidget):
         super().__init__()
 
         self.tablewidget = QTableWidget(0, 2)
+        self.tablewidget.setMinimumHeight(200)
         self.tablewidget.setHorizontalHeaderLabels(["Job", "Status"])
         self.tablewidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.tablewidget.verticalHeader().setVisible(False)
@@ -91,29 +92,24 @@ class uiJobQueue(QWidget):
             return
 
         pbar.setValue(progress)
-        if status == "running":
+        pbar.setTextVisible(True)
+        pbar.setFormat(f"{status} %p%")
+        if status == "Running":
             pbar.setStyleSheet("""
                 QProgressBar::chunk { background-color: #d32f2f; }
-                QProgressBar { text-align: center; color: white; font-weight: bold; }
+                QProgressBar { text-align: center; color: black; font-weight: normal; }
             """)
-        elif status == "done":
+        elif status == "Saving":
             pbar.setStyleSheet("""
                 QProgressBar::chunk { background-color: #388e3c; }
-                QProgressBar { text-align: center; color: white; font-weight: bold; }
+                QProgressBar { text-align: center; color: black; font-weight: normal; }
             """)
 
     @Slot(int, str)
     def finish_job(self, row: int, result: str):
-        pbar = self.tablewidget.cellWidget(row, 1)
-        if not isinstance(pbar, QProgressBar):
-            return
-
-        pbar.setValue(100)
-        if result == "done":
-            pbar.setStyleSheet("""
-                QProgressBar::chunk { background-color: #388e3c; }
-                QProgressBar { text-align: center; color: white; font-weight: bold; }
-            """)
+        self.tablewidget.removeCellWidget(row, 1)
+        item = QTableWidgetItem(result)
+        self.tablewidget.setItem(row, 1, item)
 
     def delete_selected(self):
         row = self.tablewidget.currentRow()

@@ -1,38 +1,26 @@
-from shared.uiodbind import (
-    SurveySel,
-    Seismic3DSel,
-    ODObjectSel,
-    ChunkMergeMode
-)
-from shared.uitools import (
-    uiFileSel,
-    uiSpinBoxRowWidget
-)
-from shared.uijobqueue import (
-    uiJobQueue,
-    JobTask,
-    JobPars,
-    JobSignals
-)
-
-from src.zipmodel_runner.utils.zipmodeltask import ZipModelTask, ZipModelTaskPars
-from utils.zipmodelhelpers import ZipModelInfoReader, is_seisimg2img
-
-from PySide6.QtCore import Qt, QThreadPool
 from PySide6.QtWidgets import (
     QFileDialog,
     QGroupBox,
     QHBoxLayout,
-    QHeaderView,
     QMainWindow,
     QMessageBox,
-    QProgressBar,
     QPushButton,
-    QTableWidget,
-    QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
+from utils.zipmodelhelpers import ZipModelInfoReader, is_seisimg2img
+
+from shared.uijobqueue import uiJobQueue
+from shared.uiodbind import (
+    ChunkMergeMode,
+    MultiSeismic3DInputSelGrp,
+    MultiSeismic3DOutputSelGrp,
+    Range3DSelGrp,
+    SurveySel,
+)
+from shared.uitools import uiFileSel, uiSpinBoxRowWidget
+from zipmodel_runner.utils.zipmodeltask import ZipModelTask, ZipModelTaskPars
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -49,16 +37,9 @@ class MainWindow(QMainWindow):
         self.filesel.textChanged.connect(self.on_zipmodel_select)
 
         self.surveysel = SurveySel()
-
-        self.inputgrp = QGroupBox("Input Volumes")
-        self.input_layout = QVBoxLayout()
-        self.inputgrp.setLayout(self.input_layout)
-        self.update_inputs()
-
-        self.outputgrp = QGroupBox("Output Volumes")
-        self.output_layout = QVBoxLayout()
-        self.outputgrp.setLayout(self.output_layout)
-        self.update_outputs()
+        self.inputgrp = MultiSeismic3DInputSelGrp(self.surveysel)
+        self.outputgrp = MultiSeismic3DOutputSelGrp(self.surveysel)
+        self.rangegrp = Range3DSelGrp(self.surveysel, title="Process Range")
 
         self.paramgrp = QGroupBox("Parameters")
         self.param_layout = QVBoxLayout()
@@ -70,6 +51,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.surveysel)
         layout.addWidget(self.inputgrp)
         layout.addWidget(self.outputgrp)
+        layout.addWidget(self.rangegrp)
         layout.addWidget(self.paramgrp)
 
 
@@ -107,6 +89,7 @@ class MainWindow(QMainWindow):
             self.stop_button.setEnabled(False)
 
     def on_add_button_clicked(self):
+        self.fillpars()
         job = ZipModelTask(self.jobqueue.rowCount(),self.pars)
         self.jobqueue.add_job(job)
         if self.jobqueue.size()==1:
@@ -149,82 +132,55 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"Unsupported learning type: {modelinfo.learn_type}")
             return
 
-        self.fillpars(modelinfo)
-        self.update_inputs(modelinfo["input_names"])
-        self.update_outputs(modelinfo["output_names"])
+        self.modelinfo = modelinfo
+        self.inputgrp.update_inputs(modelinfo["input_names"])
+        self.outputgrp.update_outputs(modelinfo["output_names"])
         self.update_params(modelinfo)
         self.add_button.setEnabled(True)
 
-    def fillpars(self, modelinfo):
+    def get_final_range(self):
+        selrange = self.rangegrp.get_ranges()
+        datarange = self.inputgrp.get_common_range()
+        ranges = []
+        for selrng, datarng in zip(selrange, datarange):
+            rng = list(datarng)
+            rng[0] = max(rng[0], selrng[0])
+            rng[1] = min(rng[1], selrng[1])
+            ranges.append(rng)
+        return ranges
+
+    def fillpars(self):
+        inputs = self.inputgrp.get_inputs()
+        if not inputs:
+            QMessageBox.warning(self, "Missing Inputs", "All inputs must be assigned before adding a run.")
+            return
+        outputs = self.outputgrp.get_outputs()
+        if not outputs:
+            QMessageBox.warning(self, "Missing Outputs", "All outputs must be assigned before adding a run.")
+            return
+        inlrg, crlrg, zrg = self.get_final_range()
         self.pars = ZipModelTaskPars(
-            name=modelinfo["model_name"],
+            name=self.modelinfo["model_name"],
             model_path=self.filesel.path(),
             survey_name=self.surveysel.currentText(),
-            input_volume_names=[""],
-            output_volume_names=[""],
-            inline_range=(0, 0),
-            crossline_range=(0, 0),
-            z_range=(0.0, 0.0),
+            input_volume_names=inputs,
+            output_volume_names=outputs,
+            inline_range=inlrg,
+            crossline_range=crlrg,
+            z_range=zrg,
+            batch_size=self.batchsz.get_values()[0],
             chunk_size=self.chunksz.get_values(),
             overlap=self.overlap.get_values(),
             merge_mode=self.mergemode.currentIndex(),
-            propery_names=modelinfo["output_names"],
+            property_names=self.modelinfo["output_names"],
             format_name="CBVS"
         )
 
-    def update_inputs(self, names: list[str] | None = None):
-        names = names or ['Input']
-        while self.input_layout.count() > len(names):
-            layout_item = self.input_layout.takeAt(self.input_layout.count()-1)
-            widget = layout_item.widget()
-            if widget:
-                if isinstance(widget, Seismic3DSel):
-                    try:
-                        self.surveysel.currentTextChanged.disconnect(widget.setSurvey)
-                    except RuntimeError:
-                        pass
-                widget.deleteLater()
-
-        while self.input_layout.count()<len(names):
-            entry = Seismic3DSel()
-            self.surveysel.currentTextChanged.connect(entry.setSurvey)
-            entry.setSurvey(self.surveysel.currentText())
-            self.input_layout.addWidget(entry)
-
-        for idx, name in enumerate(names):
-            layout_item = self.input_layout.itemAt(idx)
-            widget = layout_item.widget()
-            if isinstance(widget, Seismic3DSel):
-                widget.label.setText(name)
-                widget.label.adjustSize()
-
-    def update_outputs(self, names: list[str] | None = None):
-        names = names or ['Output']
-        while self.output_layout.count() > len(names):
-            layout_item = self.output_layout.takeAt(self.output_layout.count()-1)
-            widget = layout_item.widget()
-            if widget:
-                if isinstance(widget, Seismic3DSel):
-                    try:
-                        self.surveysel.currentTextChanged.disconnect(widget.setSurvey)
-                    except RuntimeError:
-                        pass
-                widget.deleteLater()
-
-        while self.output_layout.count()<len(names):
-            entry = ODObjectSel(translatorgrp="Seismic Data")
-            self.surveysel.currentTextChanged.connect(entry.setSurvey)
-            entry.setSurvey(self.surveysel.currentText())
-            self.output_layout.addWidget(entry)
-
-        for idx, name in enumerate(names):
-            layout_item = self.output_layout.itemAt(idx)
-            widget = layout_item.widget()
-            if isinstance(widget, ODObjectSel):
-                widget.label.setText(name)
-                widget.label.adjustSize()
-
     def make_params(self):
+        self.param_layout.setContentsMargins(5, 5, 5, 5)
+        self.batchsz = uiSpinBoxRowWidget(prefix=[""], label="Batch Size", withsym=False)
+        self.batchsz.set_range(-1, 1, 8, 1)
+        self.param_layout.addWidget(self.batchsz)
         self.chunksz = uiSpinBoxRowWidget(label="Chunk Size")
         self.chunksz.set_range(-1, 16, 512, 16)
         self.param_layout.addWidget(self.chunksz)
