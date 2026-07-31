@@ -2,6 +2,6 @@
 .pixi/*
 !.pixi/config.toml
 
-
+.zed/*
 
 **/__pycache__/*
