@@ -8,12 +8,15 @@ platforms = [
 preview = ["pixi-build"]
 
 [activation.env]
-ODPYTHON = "/opt/seismic/OpendTectPro_rc/0.0.0"
-PYTHONPATH = "${PIXI_PROJECT_ROOT}/src:$ODPYTHON/bin/python"
+#ODPYTHON = "/opt/seismic/OpendTectPro_rc/0.0.0"
+ODPYTHON = "/home/wayne/Development/dGB/odmain/OpendTect/inst"
+DGBPYTHON = "/home/wayne/Development/dGB/dgbpy-dev/dgbpy-main"
+PYTHONPATH = "${PIXI_PROJECT_ROOT}/src:$ODPYTHON/bin/python:$DGBPYTHON"
 
 [dependencies]
 python = "<3.13"
 cuda-version = "12.*"
+marimo = "*"
 numpy = ">=2.5.0,<3"
 pyside6 = "==6.9.3"
 pytorch-gpu = "*"

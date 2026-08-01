@@ -8,8 +8,14 @@ Miscellaneous stand-a-lone applications/tools for working with OpendTect project
 - [Contributing](#contributing)
 
 ## Tools
-- **zipmodel_runner**: apply ZipModels to OpendTect data
 
+### ZipModel Runner
+A PySide6 Python application that can be used to apply ZipModels to OpendTect data. Run it using:
+```bash
+pixi run zipmodel
+```
+Requires ODBind from the OpendTect "main" branch and a Python environment compatible with the ZipModel. The environment set up by this package supports basic PyTorch-GPU on Linux. Adapt as required for your personal hardware, software setup and ZipModel targets.
+ 
 ## Installation
 Install the **pixi** package manager, see instructions [here](https://pixi.prefix.dev/latest/installation/)
 

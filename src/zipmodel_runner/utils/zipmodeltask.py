@@ -25,7 +25,7 @@ class ZipModelTaskPars(JobPars):
     overlap: tuple[int,int,int]
     merge_mode: int
     property_names: str
-    format_name: str
+    formats: list[str]
 
 class ZipModelTask(JobTask):
     def __init__(self, row: int, pars: ZipModelTaskPars):
@@ -61,21 +61,24 @@ class ZipModelTask(JobTask):
                                             self.pars.inline_range,
                                             self.pars.crossline_range,
                                             self.pars.z_range,
-                                            property_name,
+                                            components=[property_name],
+                                            fmt=format,
                                             zistime=zistime,
                                             overwrite=True
-            ) for volume_name, property_name in zip(self.pars.output_volume_names, self.pars.property_names)]
+            ) for volume_name, property_name, format in zip(self.pars.output_volume_names, self.pars.property_names, self.pars.formats)]
             batchsz = self.pars.batch_size
             numin = len(self.pars.input_volume_names)
             for idx in range(0, numchunks, batchsz):
                 numbatch = min(batchsz,numchunks-idx)
                 input = np.empty((numbatch, numin, *self.pars.chunk_size), dtype=np.float32)
+                nanarray = np.empty_like(input, dtype=np.bool)
                 infos = []
                 for bidx in range(numbatch):
                     for cidx in range(numin):
                         data, info = next(chunksets[cidx])
                         infos.append(info)
-                        input[bidx,cidx,:,:,:] = data[0]
+                        nanarray[bidx, cidx, :, :, :] = np.isnan(data[0])
+                        input[bidx,cidx,:,:,:] = np.nan_to_num(data[0])
                 if self.do_stop:
                     break
                 prediction = zipmodel.predict(input)
@@ -83,12 +86,15 @@ class ZipModelTask(JobTask):
                     newinfo = infos[bidx]
                     for cidx, outputvol in enumerate(outputvols):
                         newinfo['comp'] = self.pars.property_names[cidx]
+                        prediction[bidx, cidx, nanarray[bidx, cidx]] = np.nan
                         outputvol.chunk[:] = ([prediction[bidx,cidx]], newinfo)
                 self.signals.progress.emit(self.row, round((idx+numbatch)/numchunks*100), "Running")
             self.signals.progress.emit(self.row, 0, "Saving")
             for idx, outputvol in enumerate(outputvols):
                 outputvol.close()
                 self.signals.progress.emit(self.row, round((idx+1)/len(outputvols)*100), "Saving")
-        finally:
             result = f"Completed at {time.strftime('%X')}"
+        except Exception as e:
+            result = f"Error: {e}"
+        finally:
             self.signals.finished.emit(self.row, result)

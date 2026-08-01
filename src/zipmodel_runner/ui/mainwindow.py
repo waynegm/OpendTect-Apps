@@ -173,7 +173,7 @@ class MainWindow(QMainWindow):
             overlap=self.overlap.get_values(),
             merge_mode=self.mergemode.currentIndex(),
             property_names=self.modelinfo["output_names"],
-            format_name="CBVS"
+            formats=self.outputgrp.get_translators()
         )
 
     def make_params(self):

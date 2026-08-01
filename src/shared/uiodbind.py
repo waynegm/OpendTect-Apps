@@ -145,6 +145,15 @@ class MultiSeismic3DOutputSelGrp(QGroupBox):
                 outputs.append(widget.text())
         return outputs
 
+    def get_translators(self) -> list[str]:
+        transls = []
+        for idx in range(self._layout.count()):
+            layout_item = self._layout.itemAt(idx)
+            widget = layout_item.widget()
+            if isinstance(widget, ODObjectSel):
+                transls.append(widget.chosen_translator())
+        return transls
+
 class Range3DSelGrp(QGroupBox):
     rangeChanged = Signal(Sampling)
 
@@ -262,7 +271,7 @@ class ODObjectSel(QWidget):
         from odbind.survey import Survey
 
         caption = "Select output " + self.translatorgrp
-        dlg = ODObjectSelDlg(self.survey, caption=caption, parent=self)
+        dlg = ODObjectSelDlg(self.survey, self.translatorgrp, caption=caption, parent=self)
         dlg.clear()
         dlg.addItems(Survey(self.survey).get_object_names(self.translatorgrp))
         dlg.exec()
@@ -281,10 +290,12 @@ class ODObjectSel(QWidget):
 class ODObjectSelDlg(QDialog):
     def __init__(self,
         survey: str,
+        trgrpnm: str,
         label:str="Object",
         above:bool=True,
         caption: str="Select an Object",
         parent=None):
+        from odbind.survey import Survey
         super().__init__(parent)
         self.setWindowTitle(caption)
         self.object_list = QListWidget()
@@ -292,6 +303,7 @@ class ODObjectSelDlg(QDialog):
         sp.setVerticalPolicy(QSizePolicy.Policy.Expanding)
         self.object_list.setSizePolicy(sp)
         self.translator = uiLabelledComboBox(label="Write to", above=False)
+        self.translator.addItems(Survey.translkeys(trgrpnm, False))
         self.object_name = uiLabelledLineEdit(label="Name", above=False)
         main_layout = QVBoxLayout()
         form_layout = QFormLayout()
