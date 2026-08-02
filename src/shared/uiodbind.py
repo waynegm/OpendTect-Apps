@@ -1,13 +1,15 @@
+#
+# Copyright (C) 2026 Wayne Mogg All rights reserved.
+# This file may be used under the terms of the GNU GENERAL PUBLIC LICENSE Version 3 License
+#
+
 import os
 import sys
 from collections import namedtuple
 from importlib.util import find_spec
-from shared.uitools import (
-    uiLabelledComboBox,
-    uiLabelledLineEdit,
-    uiSpinBoxRowWidget
-)
 
+from odbind.seismic3d import MergeMode, Seismic3D
+from odbind.survey import Survey
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QComboBox,
@@ -18,19 +20,19 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QListWidget,
-    QMessageBox,
     QPushButton,
     QSizePolicy,
     QVBoxLayout,
-    QWidget
+    QWidget,
 )
+
+from shared.uitools import uiLabelledComboBox, uiLabelledLineEdit, uiSpinBoxRowWidget
 
 Shape = namedtuple('Shape', ['ninl', 'ncrl', 'nz'])
 Sampling = namedtuple('Sampling', ['inlrg', 'crlrg', 'zrg'])
 
 class SurveySel(uiLabelledComboBox):
     def __init__(self, label:str="Survey", above:bool=True, parent=None):
-        from odbind.survey import Survey
         super().__init__(label=label, above=above, parent=parent)
         self.addItems(Survey.names())
 
@@ -39,8 +41,6 @@ class Seismic3DSel(uiLabelledComboBox):
         super().__init__(label=label, above=above, parent=parent)
 
     def setSurvey(self, text:str):
-        from odbind.survey import Survey
-        from odbind.seismic3d import Seismic3D
         self.clear()
         self.addItems(Seismic3D.names(Survey(text)))
 
@@ -89,8 +89,6 @@ class MultiSeismic3DInputSelGrp(QGroupBox):
         return inputs
 
     def get_common_range(self) -> Sampling:
-        from odbind.survey import Survey
-        from odbind.seismic3d import Seismic3D
         survey = Survey(self._surveysel.currentText())
         ranges = [survey.inlrange,survey.crlrange,survey.zrange]
         for input in self.get_inputs():
@@ -172,7 +170,6 @@ class Range3DSelGrp(QGroupBox):
         self._on_survey_changed(surveysel.currentText())
 
     def _on_survey_changed(self, surveynm: str):
-        from odbind.survey import Survey
         survey = Survey(surveynm)
         sampling = Sampling(survey.inlrange,survey.crlrange,survey.zrange)
         self.set_world_range(sampling)
@@ -217,7 +214,6 @@ class ChunkMergeMode(uiLabelledComboBox):
         super().__init__(label=label, above=above, parent=parent)
 
     def initui(self):
-        from odbind.seismic3d import MergeMode
         self.clear()
         modes = [mode.name for mode in MergeMode]
         self.addItems(modes)
@@ -268,8 +264,6 @@ class ODObjectSel(QWidget):
         self.input.clear()
 
     def show_dialog(self):
-        from odbind.survey import Survey
-
         caption = "Select output " + self.translatorgrp
         dlg = ODObjectSelDlg(self.survey, self.translatorgrp, caption=caption, parent=self)
         dlg.clear()
@@ -295,7 +289,6 @@ class ODObjectSelDlg(QDialog):
         above:bool=True,
         caption: str="Select an Object",
         parent=None):
-        from odbind.survey import Survey
         super().__init__(parent)
         self.setWindowTitle(caption)
         self.object_list = QListWidget()

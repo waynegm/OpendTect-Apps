@@ -1,3 +1,8 @@
+#
+# Copyright (C) 2026 Wayne Mogg All rights reserved.
+# This file may be used under the terms of the GNU GENERAL PUBLIC LICENSE Version 3 License
+#
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFileDialog,

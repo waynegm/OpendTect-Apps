@@ -3,7 +3,7 @@ name = "opendtect_apps"
 channels = ["conda-forge", "nvidia"]
 platforms = [
     {platform = "linux-64", cuda = "12"},
-    {platform = "win-64", cuda = "12"}
+    {platform = "win-64"}
 ]
 preview = ["pixi-build"]
 
@@ -19,12 +19,18 @@ cuda-version = "12.*"
 marimo = "*"
 numpy = ">=2.5.0,<3"
 pyside6 = "==6.9.3"
-pytorch-gpu = "*"
 torchvision = "*"
 xarray = ">=2026.4.0,<2027"
+matplotlib = ">=3.10.9,<4"
+pyqtgraph = ">=0.14.0,<0.15"
 
 [target.linux-64.dependencies]
+pytorch-gpu = "*"
 qt6-wayland = "==6.9.3"
 
+[target.win-64.dependencies]
+pytorch-cpu = "*"
+
 [tasks]
+viewer = "python src/slice_viewer"
 zipmodel = "python src/zipmodel_runner"

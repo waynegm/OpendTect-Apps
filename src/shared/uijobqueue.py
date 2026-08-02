@@ -1,21 +1,18 @@
+#
+# Copyright (C) 2026 Wayne Mogg All rights reserved.
+# This file may be used under the terms of the GNU GENERAL PUBLIC LICENSE Version 3 License
+#
+
 from dataclasses import dataclass
 
-from PySide6.QtCore import (
-    QObject,
-    QRunnable,
-    Qt,
-    QThreadPool,
-    Signal,
-    Slot
-)
-
+from PySide6.QtCore import QObject, QRunnable, Qt, QThreadPool, Signal, Slot
 from PySide6.QtWidgets import (
     QHeaderView,
     QProgressBar,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
-    QWidget
+    QWidget,
 )
 
 

@@ -1,3 +1,8 @@
+#
+# Copyright (C) 2026 Wayne Mogg All rights reserved.
+# This file may be used under the terms of the GNU GENERAL PUBLIC LICENSE Version 3 License
+#
+
 import json
 import logging
 import zipfile
@@ -10,8 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def is_seisimg2img(modelinfo):
-    from dgbpy.zipmodelbase import LearnType
-    return modelinfo["learn_type"] == LearnType.SeisImg2Img
+    return modelinfo["learn_type"] == "Seismic Image Transformation"
 
 def extract_model_info(zipmodel_path):
     """Returns the modelinfo data from a zipmodel file."""

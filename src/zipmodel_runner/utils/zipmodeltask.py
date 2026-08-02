@@ -1,15 +1,20 @@
-import numpy as np
+#
+# Copyright (C) 2026 Wayne Mogg All rights reserved.
+# This file may be used under the terms of the GNU GENERAL PUBLIC LICENSE Version 3 License
+#
+
+import time
 from dataclasses import dataclass
 from shlex import join
-import time
 
-from shared.uijobqueue import (
-    JobPars,
-    JobTask
-)
+import numpy as np
 from dgbpy.zipmodelbase import load_modelimpl
+from odbind.seismic3d import MergeMode, Seismic3D
+from odbind.survey import Survey
+from PySide6.QtCore import Slot
 
-from PySide6.QtCore import QObject, QRunnable, Signal, Slot
+from shared.uijobqueue import JobPars, JobTask
+
 
 @dataclass(slots=True)
 class ZipModelTaskPars(JobPars):
@@ -33,9 +38,6 @@ class ZipModelTask(JobTask):
 
     @Slot()
     def run(self):
-        from odbind.survey import Survey
-        from odbind.seismic3d import Seismic3D, MergeMode
-
         try:
             if not isinstance(self.pars, ZipModelTaskPars ):
                 return
