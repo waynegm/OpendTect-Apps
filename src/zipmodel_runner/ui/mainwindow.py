@@ -1,3 +1,4 @@
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFileDialog,
     QGroupBox,
@@ -178,9 +179,14 @@ class MainWindow(QMainWindow):
 
     def make_params(self):
         self.param_layout.setContentsMargins(5, 5, 5, 5)
+        toplayout = QHBoxLayout()
+        toplayout.setSpacing(30)
         self.batchsz = uiSpinBoxRowWidget(prefix=[""], label="Batch Size", withsym=False)
         self.batchsz.set_range(-1, 1, 8, 1)
-        self.param_layout.addWidget(self.batchsz)
+        toplayout.addWidget(self.batchsz, 0, Qt.AlignmentFlag.AlignTop)
+        self.mergemode = ChunkMergeMode()
+        toplayout.addWidget(self.mergemode, 1, Qt.AlignmentFlag.AlignTop)
+        self.param_layout.addLayout(toplayout)
         self.chunksz = uiSpinBoxRowWidget(label="Chunk Size")
         self.chunksz.set_range(-1, 16, 512, 16)
         self.param_layout.addWidget(self.chunksz)
@@ -188,8 +194,6 @@ class MainWindow(QMainWindow):
         self.overlap.set_range(-1, 0, 60, 1)
         self.overlap.set_values((10,10,10,))
         self.param_layout.addWidget(self.overlap)
-        self.mergemode = ChunkMergeMode()
-        self.param_layout.addWidget(self.mergemode)
 
     def update_params(self, modelinfo):
         self.mergemode.initui()
