@@ -24,5 +24,4 @@ class MainWindow(QMainWindow):
         self.central_widget = QWidget()
         self.central_widget.setLayout(self._layout)
         self.setCentralWidget(self.central_widget)
-
-        self.seisview.update_base_layer()
+        self.seisview.update_view()

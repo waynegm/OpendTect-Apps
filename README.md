@@ -8,6 +8,11 @@ Miscellaneous stand-a-lone applications/tools for working with OpendTect project
 - [Contributing](#contributing)
 
 ## Tools
+### Seismic Slice Viewer
+A PySide6 and pyqtgraph Python application to view slices from an OpendTect 3D seismic volume. Run it using: 
+```bash
+pixi run viewer
+```
 
 ### ZipModel Runner
 A PySide6 Python application that can be used to apply ZipModels to OpendTect data. Run it using:
