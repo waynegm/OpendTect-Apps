@@ -178,7 +178,8 @@ class uiPrefixSpinBox(QSpinBox):
     """Custom spin box that enforces a read-only text prefix."""
     def __init__(self, prefix_text, parent=None):
         super().__init__(parent)
-        self.setPrefix(f"{prefix_text}: ")
+        if prefix_text:
+            self.setPrefix(f"{prefix_text}: ")
 
 class uiSpinBoxRowWidget(QWidget):
     """A row of spinboxes with labels inside the input box."""
