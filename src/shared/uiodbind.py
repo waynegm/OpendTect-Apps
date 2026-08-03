@@ -35,14 +35,18 @@ class SurveySel(uiLabelledComboBox):
     def __init__(self, label:str="Survey", above:bool=True, parent=None):
         super().__init__(label=label, above=above, parent=parent)
         self.addItems(Survey.names())
+        self.setCurrentIndex(0)
 
 class Seismic3DSel(uiLabelledComboBox):
     def __init__(self, label:str="Input Volume", above:bool=True, parent=None):
         super().__init__(label=label, above=above, parent=parent)
 
     def setSurvey(self, text:str):
+        self.blockSignals(True)
         self.clear()
         self.addItems(Seismic3D.names(Survey(text)))
+        self.setCurrentIndex(0)
+        self.blockSignals(False)
 
 class MultiSeismic3DInputSelGrp(QGroupBox):
     def __init__(self, surveysel: SurveySel, title:str="Input Volumes", parent=None):

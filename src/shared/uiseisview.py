@@ -92,7 +92,6 @@ class uiSeisView(QWidget):
         self._on_data_change()
 
     def _on_data_change(self):
-        print(self._survey, self.baseseis.currentText())
         self._baseseismic = Seismic3D(self._survey, self.baseseis.currentText())
         self._overseismic = Seismic3D(self._survey, self.overseis.currentText())
         self._on_slicetype_change()
@@ -141,9 +140,18 @@ class uiSeisView(QWidget):
         transform.translate(x0 - (dx / 2.0), y0 - (dy / 2.0))
         transform.scale(dx, dy)
         self.baseseis_item.setTransform(transform)
-        mean = np.nanmean(base[base_first].values)
-        std = np.nanstd(base[base_first].values)
-        print(mean,std)
-        self.baseseis_item.setImage(np.clip(base[base_first].values, mean-2*std, mean+2*std))
+        data = base[base_first].values
+        data[np.isnan(data)] = 0.0
+        minval = data.min()
+        maxval = data.max()
+        self.baseseis_item.setImage(data)
+        self.baseseis_item.setLevels([minval,maxval])
+        self.baseseis_cmap.setLevels(values=(minval,maxval))
         self.overseis_item.setTransform(transform)
-        self.overseis_item.setImage(over[over_first].values)
+        data = over[over_first].values
+        data[np.isnan(data)] = 0.0
+        minval = data.min()
+        maxval = data.max()
+        self.overseis_item.setImage(data)
+        self.overseis_item.setLevels([minval,maxval])
+#        self.overseis_cmap.setLevels(values=(minval,maxval))

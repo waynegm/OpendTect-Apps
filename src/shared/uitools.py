@@ -49,6 +49,11 @@ class uiLabelledLineEdit(QWidget):
     def clear(self):
         self.input.clear()
 
+    def blockSignals(self, block: bool) -> bool:
+        self.input.blockSignals(block)
+        return super().blockSignals(block)
+
+
 class uiLabelledComboBox(QWidget):
     """A labelled combobox"""
 
@@ -92,6 +97,9 @@ class uiLabelledComboBox(QWidget):
     def setCurrentIndex(self, index: int):
         self.input.setCurrentIndex(index)
 
+    def blockSignals(self, block: bool) -> bool:
+        self.input.blockSignals(block)
+        return super().blockSignals(block)
 
 class uiFileSel(QWidget):
     """A file selection widget"""
