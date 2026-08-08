@@ -97,6 +97,12 @@ class uiLabelledComboBox(QWidget):
     def setCurrentIndex(self, index: int):
         self.input.setCurrentIndex(index)
 
+    def setCurrentText(self, text: str):
+        self.setCurrentIndex(self.input.findText(text))
+
+    def setLabelWidth(self, width: int):
+        self.label.setFixedWidth(width)
+
     def blockSignals(self, block: bool) -> bool:
         self.input.blockSignals(block)
         return super().blockSignals(block)

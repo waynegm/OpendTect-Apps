@@ -8,10 +8,9 @@ platforms = [
 preview = ["pixi-build"]
 
 [activation.env]
-#ODPYTHON = "/opt/seismic/OpendTectPro_rc/0.0.0"
-ODPYTHON = "/home/wayne/Development/dGB/odmain/OpendTect/inst"
+ODPYTHON = "/home/wayne/Development/dGB/odmain/OpendTect/inst/bin/python"
 DGBPYTHON = "/home/wayne/Development/dGB/dgbpy-dev/dgbpy-main"
-PYTHONPATH = "${PIXI_PROJECT_ROOT}/src:$ODPYTHON/bin/python:$DGBPYTHON"
+PYTHONPATH = "${PIXI_PROJECT_ROOT}/src:$DGBPYTHON:$ODPYTHON"
 
 [dependencies]
 python = "<3.13"
