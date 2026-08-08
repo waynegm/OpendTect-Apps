@@ -20,6 +20,7 @@ from shared.uiodbind import (
 )
 from shared.uitools import uiLabelledComboBox, uiSpinBoxRowWidget
 
+
 def cmap_fault_red():
     return pg.ColorMap(
         [0.0,0.5,1.0],
@@ -31,11 +32,13 @@ def cmap_dgb_fault():
         [0.0,0.4,0.49,0.58,0.85,1.0],
         [(255,255,255),(197,180,153),(216,173,1),(73,145,9),(0,85,0),(0,111,166)]
     )
+
+CMAPS = {
+    "Fault-Red": cmap_fault_red(),
+    "DGB_Fault": cmap_dgb_fault(),
+}
+
 class uiSeisView(QWidget):
-    cmaps = {
-        "Fault-Red": cmap_fault_red(),
-        "DGB_Fault": cmap_dgb_fault(),
-    }
 
     def __init__(self):
         super().__init__()
@@ -47,7 +50,7 @@ class uiSeisView(QWidget):
         self.baseseis.setSurvey(self.surveysel.currentText())
         self.overseis.setSurvey(self.surveysel.currentText())
         self.overseis_cmap_sel = uiLabelledComboBox(label="", above=False)
-        self.overseis_cmap_sel.addItems(list(self.cmaps.keys()))
+        self.overseis_cmap_sel.addItems(list(CMAPS.keys()))
         self.slicetype = uiLabelledComboBox(label="", above=False)
         self.slicetype.addItems(["Inline", "Crossline", "Z"])
         self.slicesel = uiSpinBoxRowWidget(prefix=[""], label="Slice", above=False, withsym=False)
@@ -74,7 +77,7 @@ class uiSeisView(QWidget):
         self.baseseis_cmap = pg.ColorBarItem(colorMap='CET-L2')
         self.baseseis_cmap.setImageItem(self.baseseis_item)
         self.seismic_layout.addItem(self.baseseis_cmap)
-        self.overseis_cmap = pg.ColorBarItem(colorMap=self.cmaps['Fault-Red'])
+        self.overseis_cmap = pg.ColorBarItem(colorMap=CMAPS['Fault-Red'])
         self.overseis_cmap.setImageItem(self.overseis_item)
         self.seismic_layout.addItem(self.overseis_cmap)
 
@@ -113,7 +116,7 @@ class uiSeisView(QWidget):
     def _on_overseis_cbar_change(self):
         self.seismic_layout.removeItem(self.overseis_cmap)
         cmap = self.overseis_cmap_sel.currentText()
-        self.overseis_cmap = pg.ColorBarItem(colorMap=self.cmaps[cmap])
+        self.overseis_cmap = pg.ColorBarItem(colorMap=CMAPS[cmap])
         self.seismic_layout.addItem(self.overseis_cmap)
         self.overseis_cmap.setImageItem(self.overseis_item)
 #        self.update_view()
@@ -169,4 +172,4 @@ class uiSeisView(QWidget):
         maxval = data.max()
         self.overseis_item.setImage(data)
         self.overseis_item.setLevels([minval,maxval])
-#        self.overseis_cmap.setLevels(values=(minval,maxval))
+        self.overseis_cmap.setLevels(values=(minval,maxval))
